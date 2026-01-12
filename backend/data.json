@@ -1,0 +1,65 @@
+{
+  "orders": [
+    {
+      "id": 1,
+      "customerName": "tet",
+      "phone": "1234567890",
+      "address": "pujne",
+      "city": "pune",
+      "pincode": "411045",
+      "items": [
+        {
+          "name": "Golden Lakshmi Diya Stand",
+          "qty": 1,
+          "price": 280
+        }
+      ],
+      "totalAmount": 280,
+      "status": "NEW",
+      "paymentStatus": "PENDING",
+      "notes": "",
+      "createdAt": "2026-01-12T09:21:37.838Z"
+    },
+    {
+      "id": 2,
+      "customerName": "Test User",
+      "phone": "9876543210",
+      "address": "Test Address",
+      "city": "Mumbai",
+      "pincode": "400001",
+      "items": [
+        {
+          "name": "Test Item",
+          "qty": 1,
+          "price": 100
+        }
+      ],
+      "totalAmount": 100,
+      "status": "NEW",
+      "paymentStatus": "PENDING",
+      "notes": "",
+      "createdAt": "2026-01-12T09:23:24.029Z"
+    },
+    {
+      "id": 3,
+      "customerName": "Proxy Test",
+      "phone": "1234567890",
+      "address": "Via Frontend Proxy",
+      "city": "Test",
+      "pincode": "123456",
+      "items": [
+        {
+          "name": "Test",
+          "qty": 1,
+          "price": 50
+        }
+      ],
+      "totalAmount": 50,
+      "status": "NEW",
+      "paymentStatus": "PENDING",
+      "notes": "",
+      "createdAt": "2026-01-12T09:23:45.673Z"
+    }
+  ],
+  "nextOrderId": 4
+}

@@ -1,0 +1,14 @@
+{
+  "name": "urban-gulal",
+  "version": "1.0.0",
+  "description": "Urban Gulal - Decorative & Gift Items Shop",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "dev": "echo 'Run backend and frontend separately'",
+    "build": "cd frontend && npm install && npm run build && mkdir -p ../backend/public && cp -r dist/* ../backend/public/",
+    "start": "cd backend && node server.js",
+    "postinstall": "cd backend && npm install"
+  }
+}
