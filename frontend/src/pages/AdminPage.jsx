@@ -289,18 +289,21 @@ function AdminPage() {
   }
 
   const getStatusMessage = (order) => {
-    const itemsList = order.items.map(i => `${i.name} x${i.qty}`).join(', ')
+    const itemsList = order.items.map(i => `${i.name} x${i.qty}`).join('\n• ')
+    const address = `${order.address}${order.city ? ', ' + order.city : ''}${order.pincode ? ' - ' + order.pincode : ''}`
     switch (order.status) {
+      case 'NEW':
+        return `🎨 *Urban Gulal - Order Received!*\n\n📋 Order #${order.id || order.orderId}\n👤 ${order.customerName}\n📍 ${address}\n\n🛍️ *Items:*\n• ${itemsList}\n\n💰 *Total: ₹${order.totalAmount}*\n\n✅ We've received your order and will process it soon!\n\nThank you for shopping with Urban Gulal! 🙏`
       case 'CONFIRMED':
-        return `🎨 Urban Gulal: Your order #${order.id} is confirmed!\n\nItems: ${itemsList}\nTotal: ₹${order.totalAmount}\n\nWe'll notify you when it's shipped. Thank you!`
+        return `🎨 *Urban Gulal - Order Confirmed!*\n\n📋 Order #${order.id || order.orderId}\n\n🛍️ *Items:*\n• ${itemsList}\n\n💰 *Total: ₹${order.totalAmount}*\n\n✅ Your order is confirmed and being prepared!\n\nWe'll notify you when it's shipped. Thank you! 🙏`
       case 'SHIPPED':
-        return `📦 Urban Gulal: Your order #${order.id} has been shipped!\n\nItems: ${itemsList}\n\nYou'll receive it soon. Thank you for shopping with us!`
+        return `📦 *Urban Gulal - Order Shipped!*\n\n📋 Order #${order.id || order.orderId}\n\n🛍️ *Items:*\n• ${itemsList}\n\n🚚 Your order is on the way!\n\nYou'll receive it soon. Thank you for shopping with us! 🙏`
       case 'DELIVERED':
-        return `✅ Urban Gulal: Your order #${order.id} has been delivered!\n\nWe hope you love your items. Thank you for choosing Urban Gulal! 🎨`
+        return `✅ *Urban Gulal - Order Delivered!*\n\n📋 Order #${order.id || order.orderId}\n\n🎉 Your order has been delivered!\n\nWe hope you love your items. Thank you for choosing Urban Gulal! 🎨🙏`
       case 'CANCELLED':
-        return `❌ Urban Gulal: Your order #${order.id} has been cancelled.\n\nReason: ${order.cancelReason || 'N/A'}\n\nIf you have questions, please contact us.`
+        return `❌ *Urban Gulal - Order Cancelled*\n\n📋 Order #${order.id || order.orderId}\n\n⚠️ Reason: ${order.cancelReason || 'N/A'}\n\nIf you have questions, please contact us.`
       default:
-        return `🎨 Urban Gulal: Update for your order #${order.id}\n\nStatus: ${order.status}\nItems: ${itemsList}\nTotal: ₹${order.totalAmount}`
+        return `🎨 *Urban Gulal - Order Update*\n\n📋 Order #${order.id || order.orderId}\n📊 Status: ${order.status}\n\n🛍️ *Items:*\n• ${itemsList}\n\n💰 *Total: ₹${order.totalAmount}*`
     }
   }
 

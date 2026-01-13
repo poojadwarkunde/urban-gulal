@@ -193,6 +193,44 @@ function ShopPage() {
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0)
   const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0)
 
+  // Format phone for WhatsApp
+  const formatPhoneForWhatsApp = (phoneNum) => {
+    if (!phoneNum) return null
+    let cleaned = phoneNum.replace(/\D/g, '')
+    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1)
+    if (cleaned.length === 10) cleaned = '91' + cleaned
+    if (cleaned.length === 12 && cleaned.startsWith('91')) return cleaned
+    if (cleaned.length >= 12) return cleaned
+    return null
+  }
+
+  // Send WhatsApp message for new order
+  const sendOrderConfirmationWhatsApp = (order) => {
+    const phoneFormatted = formatPhoneForWhatsApp(order.phone)
+    if (!phoneFormatted) return
+    
+    const itemsList = order.items.map(i => `${i.name} x${i.qty}`).join('\n• ')
+    const addressFull = `${order.address}${order.city ? ', ' + order.city : ''}${order.pincode ? ' - ' + order.pincode : ''}`
+    
+    const message = `🎨 *Urban Gulal - Order Confirmed!*
+
+📋 Order #${order.id || order.orderId}
+👤 ${order.customerName}
+📍 ${addressFull}
+
+🛍️ *Items:*
+• ${itemsList}
+
+💰 *Total: ₹${order.totalAmount}*
+
+✅ We've received your order and will process it soon!
+
+Thank you for shopping with Urban Gulal! 🙏`
+
+    const encodedMessage = encodeURIComponent(message)
+    window.open(`https://wa.me/${phoneFormatted}?text=${encodedMessage}`, '_blank')
+  }
+
   const handlePlaceOrder = async () => {
     if (!customerName.trim() || !phone.trim() || !address.trim()) {
       alert('Please fill in all required fields')
@@ -217,6 +255,20 @@ function ShopPage() {
       })
 
       if (!response.ok) throw new Error('Failed to place order')
+      
+      const orderData = await response.json()
+      
+      // Send WhatsApp confirmation to customer
+      sendOrderConfirmationWhatsApp({
+        ...orderData,
+        customerName: customerName.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        pincode: pincode.trim(),
+        items: cartItems.map(({ name, qty, price }) => ({ name, qty, price })),
+        totalAmount
+      })
 
       setOrderSuccess(true)
       setCart({})
