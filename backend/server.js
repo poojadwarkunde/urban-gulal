@@ -124,6 +124,27 @@ async function sendWhatsAppMessage(phone, message) {
   }
 }
 
+// Generate admin notification message for new order
+function getAdminNewOrderMessage(order) {
+  const itemsList = order.items.map(i => `${i.name} x${i.qty}`).join('\n• ');
+  const address = `${order.address}${order.city ? ', ' + order.city : ''}${order.pincode ? ' - ' + order.pincode : ''}`;
+  
+  return `🔔 *NEW ORDER ALERT!*
+
+📋 Order #${order.orderId}
+👤 Customer: ${order.customerName}
+📱 Phone: ${order.phone}
+📍 Address: ${address}
+
+🛍️ *Items:*
+• ${itemsList}
+
+💰 *Total: ₹${order.totalAmount}*
+${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
+
+⏰ Received at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+}
+
 // Generate order status message for Urban Gulal
 function getStatusMessage(order, status) {
   const itemsList = order.items.map(i => `${i.name} x${i.qty}`).join('\n• ');
@@ -209,6 +230,9 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://urbangulal:UrbanGu
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const GITHUB_REPO = 'poojadwarkunde/urban-gulal';
 const GITHUB_BRANCH = 'main';
+
+// Admin Phone Number for order notifications (set via env variable or hardcode)
+const ADMIN_PHONE = process.env.ADMIN_PHONE || '9999999999'; // Replace with your WhatsApp number
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -701,10 +725,16 @@ app.post('/api/orders', async (req, res) => {
 
     await order.save();
     
-    // Auto-send WhatsApp notification for new order
+    // Auto-send WhatsApp notification to customer for new order
     if (phone) {
       const message = getStatusMessage(order, 'NEW');
-      sendWhatsAppMessage(phone, message).catch(err => console.error('WhatsApp send error:', err));
+      sendWhatsAppMessage(phone, message).catch(err => console.error('WhatsApp send error (customer):', err));
+    }
+    
+    // Auto-send WhatsApp notification to admin for new order
+    if (ADMIN_PHONE) {
+      const adminMessage = getAdminNewOrderMessage(order);
+      sendWhatsAppMessage(ADMIN_PHONE, adminMessage).catch(err => console.error('WhatsApp send error (admin):', err));
     }
     
     // Auto-generate and upload reports to GitHub
