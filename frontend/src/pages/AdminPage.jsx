@@ -17,6 +17,7 @@ function AdminPage() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
   const [editingPrices, setEditingPrices] = useState({})
   const [savingPrices, setSavingPrices] = useState(false)
   
@@ -97,6 +98,15 @@ function AdminPage() {
       }
     } catch (err) {
       console.error('Failed to load categories:', err)
+    }
+  }
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    try {
+      await Promise.all([fetchOrders(), fetchProducts(), fetchCategories()])
+    } finally {
+      setRefreshing(false)
     }
   }
 
@@ -574,7 +584,13 @@ function AdminPage() {
           <p>Manage Orders & Products</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-secondary" onClick={() => { fetchOrders(); fetchProducts(); }}>↻ Refresh</button>
+          <button 
+            className={`btn btn-secondary refresh-btn ${refreshing ? 'refreshing' : ''}`}
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? '🔄 Refreshing...' : '↻ Refresh'}
+          </button>
         </div>
       </header>
 
