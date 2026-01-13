@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://urbangulal:urbangulal123@cluster0.mongodb.net/urbangulal?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://urbangulal:UrbanGulal2026!@cluster0.ucxzf4e.mongodb.net/urbangulal?retryWrites=true&w=majority';
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
