@@ -309,8 +309,11 @@ function ShopPage() {
 
       <main className="products-grid">
         {filteredProducts.map(product => (
-          <div key={product.id} className="product-card">
+          <div key={product.id} className={`product-card ${product.inStock === false ? 'out-of-stock' : ''}`}>
             <div className="product-image">
+              {product.inStock === false && (
+                <div className="out-of-stock-badge">Out of Stock</div>
+              )}
               <img 
                 src={product.image} 
                 alt={product.name}
@@ -326,7 +329,9 @@ function ShopPage() {
               <h3>{product.name}</h3>
               <div className="product-footer">
                 <span className="product-price">₹{product.price}</span>
-                {cart[product.id] ? (
+                {product.inStock === false ? (
+                  <span className="stock-status-text">Currently Unavailable</span>
+                ) : cart[product.id] ? (
                   <div className="qty-controls">
                     <button onClick={() => updateQuantity(product.id, -1)}>−</button>
                     <span 

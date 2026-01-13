@@ -235,6 +235,21 @@ function AdminPage() {
     }
   }
 
+  const toggleProductStock = async (product) => {
+    try {
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inStock: !product.inStock })
+      })
+      if (!response.ok) throw new Error('Failed to update')
+      await fetchProducts()
+    } catch (err) {
+      alert('Failed to toggle stock status')
+      console.error(err)
+    }
+  }
+
   const formatPhoneForWhatsApp = (phone) => {
     if (!phone) return null
     // Remove all non-digit characters
@@ -852,6 +867,13 @@ function AdminPage() {
                           onClick={() => openProductEdit(product)}
                         >
                           ✏️ Edit
+                        </button>
+                        <button 
+                          className={`btn-sm ${product.inStock !== false ? 'btn-out-stock' : 'btn-in-stock'}`}
+                          onClick={() => toggleProductStock(product)}
+                          title={product.inStock !== false ? 'Mark as Out of Stock' : 'Mark as In Stock'}
+                        >
+                          {product.inStock !== false ? '📦 In Stock' : '🚫 Out of Stock'}
                         </button>
                         <button 
                           className={`btn-sm ${product.available ? 'btn-hide' : 'btn-show'}`}

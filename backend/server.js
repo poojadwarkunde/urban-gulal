@@ -90,6 +90,7 @@ app.get('/api/products', (req, res) => {
       image: override.image || p.image,
       category: override.category || p.category,
       available: override.available !== undefined ? override.available : true,
+      inStock: override.inStock !== undefined ? override.inStock : true,
       price: prices[p.id] !== undefined ? prices[p.id] : p.price
     };
   });
@@ -160,7 +161,7 @@ app.put('/api/products/prices/bulk', (req, res) => {
 app.put('/api/products/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, image, category, available, price } = req.body;
+    const { name, description, image, category, available, inStock, price } = req.body;
     
     const product = PRODUCTS.find(p => p.id === parseInt(id));
     if (!product) {
@@ -183,6 +184,7 @@ app.put('/api/products/:id', (req, res) => {
     if (image !== undefined) overrides[id].image = image;
     if (category !== undefined) overrides[id].category = category;
     if (available !== undefined) overrides[id].available = available;
+    if (inStock !== undefined) overrides[id].inStock = inStock;
     
     saveProductOverrides(overrides);
     
@@ -195,6 +197,7 @@ app.put('/api/products/:id', (req, res) => {
       image: overrides[id].image || product.image,
       category: overrides[id].category || product.category,
       available: overrides[id].available !== undefined ? overrides[id].available : true,
+      inStock: overrides[id].inStock !== undefined ? overrides[id].inStock : true,
       price: prices[id] !== undefined ? prices[id] : product.price
     };
     
