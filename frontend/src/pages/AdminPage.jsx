@@ -340,9 +340,12 @@ function AdminPage() {
   }
 
   const handlePriceChange = (productId, value) => {
+    // Remove any non-numeric characters and parse as integer
+    const cleanValue = value.toString().replace(/[^0-9]/g, '')
+    const numericValue = cleanValue === '' ? 0 : parseInt(cleanValue, 10)
     setEditingPrices(prev => ({
       ...prev,
-      [productId]: value === '' ? 0 : parseInt(value) || 0
+      [productId]: numericValue
     }))
   }
 
@@ -881,10 +884,12 @@ function AdminPage() {
                       <div className="price-input-group">
                         <span className="rupee-symbol">₹</span>
                         <input
-                          type="number"
-                          min="0"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           value={editingPrices[product.id] || 0}
                           onChange={(e) => handlePriceChange(product.id, e.target.value)}
+                          onWheel={(e) => e.target.blur()}
                           className="price-input"
                           placeholder="0"
                         />
@@ -1055,10 +1060,15 @@ function AdminPage() {
               <div className="form-group">
                 <label>Price (₹)</label>
                 <input
-                  type="number"
-                  min="0"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={productForm.price}
-                  onChange={e => setProductForm(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
+                  onChange={e => {
+                    const cleanValue = e.target.value.replace(/[^0-9]/g, '')
+                    setProductForm(prev => ({ ...prev, price: cleanValue === '' ? 0 : parseInt(cleanValue, 10) }))
+                  }}
+                  onWheel={(e) => e.target.blur()}
                   className="form-input"
                 />
               </div>
