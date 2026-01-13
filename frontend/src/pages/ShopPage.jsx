@@ -267,7 +267,6 @@ function ShopPage() {
     
     const message = `🔔 *NEW ORDER - Urban Gulal*
 
-📋 Order #${order.id || order.orderId}
 👤 Customer: ${order.customerName}
 📱 Phone: ${order.phone}
 📍 Address: ${addressFull}
