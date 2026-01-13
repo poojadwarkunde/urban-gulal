@@ -954,6 +954,282 @@ body {
 .select-status.status-confirmed { border-color: #2196f3; color: #2196f3; }
 .select-status.status-shipped { border-color: #9c27b0; color: #9c27b0; }
 .select-status.status-delivered { border-color: #4caf50; color: #4caf50; }
+.select-status.status-cancelled { border-color: #f44336; color: #f44336; }
+
+.order-card.status-cancelled {
+  border-left-color: #f44336;
+  opacity: 0.8;
+}
+
+.order-cancel-reason {
+  background: #ffebee;
+  color: #c62828;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.order-feedback {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.order-id {
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.order-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.btn-action {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-notify {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+.btn-notify:hover { background: #bbdefb; }
+
+.btn-feedback {
+  background: #fff3e0;
+  color: #e65100;
+}
+.btn-feedback:hover { background: #ffe0b2; }
+
+.btn-cancel {
+  background: #ffebee;
+  color: #c62828;
+}
+.btn-cancel:hover { background: #ffcdd2; }
+
+/* Filters Section */
+.filters-section {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.filters-section h3 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.filter-input, .filter-select {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.filter-input:focus, .filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.clear-filters {
+  height: 100%;
+}
+
+/* Status Sections */
+.status-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.status-section {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.status-section-title {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid currentColor;
+}
+
+.status-section.status-new .status-section-title { color: #ff9800; }
+.status-section.status-confirmed .status-section-title { color: #2196f3; }
+.status-section.status-shipped .status-section-title { color: #9c27b0; }
+.status-section.status-delivered .status-section-title { color: #4caf50; }
+.status-section.status-cancelled .status-section-title { color: #f44336; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.modal h2 {
+  margin-bottom: 12px;
+}
+
+.modal p {
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.modal-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-danger {
+  background: #f44336;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #d32f2f;
+}
+
+/* Notification Modal */
+.notify-modal {
+  max-width: 500px;
+}
+
+.message-preview {
+  background: #f5f5f5;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.message-preview h4 {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.message-preview pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.notify-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-whatsapp {
+  flex: 1;
+  background: #25D366;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-whatsapp:hover {
+  background: #128C7E;
+}
+
+.btn-sms {
+  flex: 1;
+  background: #2196f3;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-sms:hover {
+  background: #1976d2;
+}
+
+.close-notify {
+  width: 100%;
+}
 
 .btn-payment {
   padding: 6px 12px;
