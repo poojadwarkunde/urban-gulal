@@ -1,11 +1,31 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const db = require('./database');
 const { PRODUCTS, CATEGORIES } = require('./products');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Prices storage
+const PRICES_FILE = path.join(__dirname, 'prices.json');
+
+function loadPrices() {
+  try {
+    if (fs.existsSync(PRICES_FILE)) {
+      const data = fs.readFileSync(PRICES_FILE, 'utf8');
+      return JSON.parse(data).prices || {};
+    }
+  } catch (err) {
+    console.error('Error loading prices:', err);
+  }
+  return {};
+}
+
+function savePrices(prices) {
+  fs.writeFileSync(PRICES_FILE, JSON.stringify({ prices }, null, 2));
+}
 
 app.use(cors());
 app.use(express.json());
@@ -13,16 +33,71 @@ app.use(express.json());
 // Serve static frontend files in production
 app.use(express.static(path.join(__dirname, 'public')));
 
-// GET all products
+// GET all products (with dynamic prices)
 app.get('/api/products', (req, res) => {
   const { category } = req.query;
-  let products = PRODUCTS;
+  const prices = loadPrices();
+  
+  let products = PRODUCTS.map(p => ({
+    ...p,
+    price: prices[p.id] !== undefined ? prices[p.id] : p.price
+  }));
   
   if (category && category !== 'All') {
-    products = PRODUCTS.filter(p => p.category === category);
+    products = products.filter(p => p.category === category);
   }
   
   res.json(products);
+});
+
+// PUT update product price (Admin only)
+app.put('/api/products/:id/price', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price } = req.body;
+    
+    if (price === undefined || isNaN(price) || price < 0) {
+      return res.status(400).json({ error: 'Invalid price' });
+    }
+    
+    const product = PRODUCTS.find(p => p.id === parseInt(id));
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    const prices = loadPrices();
+    prices[id] = parseInt(price);
+    savePrices(prices);
+    
+    res.json({ id: parseInt(id), price: parseInt(price), name: product.name });
+  } catch (error) {
+    console.error('Error updating price:', error);
+    res.status(500).json({ error: 'Failed to update price' });
+  }
+});
+
+// PUT bulk update prices (Admin only)
+app.put('/api/products/prices/bulk', (req, res) => {
+  try {
+    const { prices: newPrices } = req.body;
+    
+    if (!newPrices || typeof newPrices !== 'object') {
+      return res.status(400).json({ error: 'Invalid prices data' });
+    }
+    
+    const prices = loadPrices();
+    Object.entries(newPrices).forEach(([id, price]) => {
+      if (!isNaN(price) && price >= 0) {
+        prices[id] = parseInt(price);
+      }
+    });
+    savePrices(prices);
+    
+    res.json({ success: true, updated: Object.keys(newPrices).length });
+  } catch (error) {
+    console.error('Error bulk updating prices:', error);
+    res.status(500).json({ error: 'Failed to update prices' });
+  }
 });
 
 // GET categories

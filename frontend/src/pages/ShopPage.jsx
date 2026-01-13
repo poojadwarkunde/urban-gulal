@@ -1,33 +1,18 @@
 import { useState, useEffect } from 'react'
 
-const PRODUCTS = [
-  { id: 1, name: 'Decorative Namaste Pooja Thali', category: 'Pooja Items', price: 350, image: '/images/namaste-thali.jpg', emoji: '🪔' },
-  { id: 2, name: 'Golden Lakshmi Diya Stand', category: 'Pooja Items', price: 280, image: '/images/lakshmi-diya.jpg', emoji: '✨' },
-  { id: 3, name: 'Om Kalash Pooja Thali', category: 'Pooja Items', price: 320, image: '/images/kalash-thali.jpg', emoji: '🕉️' },
-  { id: 4, name: 'Peacock Meenakari Thali', category: 'Pooja Items', price: 450, image: '/images/peacock-thali.jpg', emoji: '🦚' },
-  { id: 5, name: 'Golden Ganesha Diya Set', category: 'Pooja Items', price: 220, image: '/images/ganesha-diya.jpg', emoji: '🐘' },
-  { id: 6, name: 'Elephant Haldi Kumkum Holder', category: 'Pooja Items', price: 180, image: '/images/elephant-holder.jpg', emoji: '🐘' },
-  { id: 7, name: 'Diamond Pattern Kite Thali', category: 'Pooja Items', price: 250, image: '/images/kite-thali.jpg', emoji: '🪁' },
-  { id: 8, name: 'Swastik Golden Plate', category: 'Pooja Items', price: 180, image: '/images/swastik-plate.jpg', emoji: '☀️' },
-  { id: 9, name: 'Bamboo Heat Pad', category: 'Kitchen', price: 120, image: '/images/heat-pad.jpg', emoji: '🎍' },
-  { id: 10, name: 'Colorful Storage Containers (Set of 6)', category: 'Kitchen', price: 250, image: '/images/containers.jpg', emoji: '📦' },
-  { id: 11, name: 'Banana Leaf Serving Plate (Set of 2)', category: 'Kitchen', price: 180, image: '/images/banana-leaf.jpg', emoji: '🍃' },
-  { id: 12, name: 'Floral Design Serving Tray', category: 'Kitchen', price: 150, image: '/images/serving-tray.jpg', emoji: '🍽️' },
-  { id: 13, name: 'Round Storage Boxes (Set of 6)', category: 'Kitchen', price: 200, image: '/images/round-boxes.jpg', emoji: '🥣' },
-  { id: 14, name: 'Embroidered Rangoli Pouch', category: 'Bags', price: 150, image: '/images/rangoli-pouch.jpg', emoji: '👜' },
-  { id: 15, name: 'Pink Floral Embroidered Wallet', category: 'Bags', price: 180, image: '/images/pink-wallet.jpg', emoji: '💗' },
-  { id: 16, name: 'Cream Floral Pouch Set', category: 'Bags', price: 220, image: '/images/cream-pouch.jpg', emoji: '🌸' },
-  { id: 17, name: 'Patchwork Designer Pouch', category: 'Bags', price: 200, image: '/images/patchwork-pouch.jpg', emoji: '🎨' },
-  { id: 18, name: 'Namaste Thank You Bag', category: 'Bags', price: 80, image: '/images/thankyou-bag.jpg', emoji: '🙏' },
-  { id: 19, name: 'Crystal Glass Turtle (Large)', category: 'Gift Items', price: 350, image: '/images/turtle-large.jpg', emoji: '🐢' },
-  { id: 20, name: 'Crystal Glass Turtle (Small)', category: 'Gift Items', price: 200, image: '/images/turtle-small.jpg', emoji: '🐢' },
-  { id: 21, name: 'Decorative Flower Candles (Set of 12)', category: 'Gift Items', price: 280, image: '/images/flower-candles.jpg', emoji: '🕯️' },
-  { id: 22, name: 'Golden Ganesh Diya Peacock', category: 'Gift Items', price: 320, image: '/images/ganesh-peacock.jpg', emoji: '🦚' },
-]
-
 const CATEGORIES = ['All', 'Pooja Items', 'Kitchen', 'Bags', 'Gift Items']
 
+// Emoji mapping for products
+const EMOJI_MAP = {
+  'Pooja Items': '🪔',
+  'Kitchen': '🍳',
+  'Bags': '👜',
+  'Gift Items': '🎁'
+}
+
 function ShopPage() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [cart, setCart] = useState({})
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [showCart, setShowCart] = useState(false)
@@ -40,6 +25,28 @@ function ShopPage() {
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products')
+        if (!response.ok) throw new Error('Failed to fetch products')
+        const data = await response.json()
+        // Add emoji based on category
+        const productsWithEmoji = data.map(p => ({
+          ...p,
+          emoji: EMOJI_MAP[p.category] || '🛍️'
+        }))
+        setProducts(productsWithEmoji)
+      } catch (err) {
+        console.error('Failed to load products:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [])
 
   const addToCart = (productId, askQty = false) => {
     if (askQty) {
@@ -84,10 +91,10 @@ function ShopPage() {
   }
 
   const filteredProducts = selectedCategory === 'All' 
-    ? PRODUCTS 
-    : PRODUCTS.filter(p => p.category === selectedCategory)
+    ? products 
+    : products.filter(p => p.category === selectedCategory)
 
-  const cartItems = PRODUCTS.filter(p => cart[p.id] > 0).map(p => ({
+  const cartItems = products.filter(p => cart[p.id] > 0).map(p => ({
     ...p,
     qty: cart[p.id]
   }))
@@ -136,6 +143,17 @@ function ShopPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="loading" style={{textAlign: 'center', padding: '60px 20px'}}>
+          <div style={{fontSize: '3rem', marginBottom: '16px'}}>🎨</div>
+          <p>Loading Urban Gulal...</p>
+        </div>
+      </div>
+    )
   }
 
   if (orderSuccess) {

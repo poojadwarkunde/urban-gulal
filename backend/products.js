@@ -1,187 +1,301 @@
 // Product catalog for Urban Gulal
+// UPDATE PRICES: Change the 'price' values below to actual prices
+
 const PRODUCTS = [
-  // Pooja Items
+  // =====================
+  // POOJA ITEMS
+  // =====================
   {
     id: 1,
-    name: 'Decorative Namaste Pooja Thali',
+    name: 'Girl Haldi Kunku Set',
     category: 'Pooja Items',
-    price: 350,
-    image: '/images/namaste-thali.jpg',
-    description: 'Beautiful meenakari work pooja thali with diya holders'
+    price: 0, // UPDATE PRICE
+    image: '/Girl haldi Kunku.jpeg',
+    description: 'Beautiful decorative haldi kunku holder with girl design'
   },
   {
     id: 2,
-    name: 'Golden Lakshmi Diya Stand',
+    name: 'Girl Holding Hands Thali',
     category: 'Pooja Items',
-    price: 280,
-    image: '/images/lakshmi-diya.jpg',
-    description: 'Elegant golden finish diya stand with Lakshmi design'
+    price: 0, // UPDATE PRICE
+    image: '/Girl holding hands thali.jpeg',
+    description: 'Elegant pooja thali with namaste design'
   },
   {
     id: 3,
-    name: 'Om Kalash Pooja Thali',
-    category: 'Pooja Items',
-    price: 320,
-    image: '/images/kalash-thali.jpg',
-    description: 'Traditional kalash design with Om symbol'
-  },
-  {
-    id: 4,
     name: 'Peacock Meenakari Thali',
     category: 'Pooja Items',
-    price: 450,
-    image: '/images/peacock-thali.jpg',
-    description: 'Colorful peacock design with intricate meenakari work'
+    price: 0, // UPDATE PRICE
+    image: '/Peacock thali.jpeg',
+    description: 'Colorful peacock design pooja thali'
   },
   {
     id: 5,
-    name: 'Golden Ganesha Diya Set',
+    name: 'Kalash Haldi Kunku (Golden)',
     category: 'Pooja Items',
-    price: 220,
-    image: '/images/ganesha-diya.jpg',
-    description: 'Ganesh shaped decorative diya holder'
+    price: 0, // UPDATE PRICE
+    image: '/kalash haldi kunku_11.jpeg',
+    description: 'Golden finish kalash haldi kunku set'
   },
   {
     id: 6,
-    name: 'Elephant Haldi Kumkum Holder',
+    name: 'Kite Haldi Kunku Set',
     category: 'Pooja Items',
-    price: 180,
-    image: '/images/elephant-holder.jpg',
-    description: 'Decorative elephant with compartments for haldi kumkum'
+    price: 0, // UPDATE PRICE
+    image: '/Kite Haldi Kunku.jpg',
+    description: 'Unique kite shaped haldi kunku holder'
   },
   {
     id: 7,
-    name: 'Diamond Pattern Kite Thali',
+    name: 'Elephant Haldi Kunku Holder',
     category: 'Pooja Items',
-    price: 250,
-    image: '/images/kite-thali.jpg',
-    description: 'Unique kite shaped pooja thali with meenakari'
+    price: 0, // UPDATE PRICE
+    image: '/Elephant haldi kunku.jpg',
+    description: 'Decorative elephant shaped haldi kunku set'
   },
   {
     id: 8,
-    name: 'Swastik Golden Plate',
+    name: 'Heart Haldi Kunku Set',
     category: 'Pooja Items',
-    price: 180,
-    image: '/images/swastik-plate.jpg',
-    description: 'Auspicious swastik design golden plate'
+    price: 0, // UPDATE PRICE
+    image: '/heart haldi kunku_1.jpeg',
+    description: 'Heart shaped decorative haldi kunku holder'
   },
-
-  // Kitchen Items
   {
     id: 9,
-    name: 'Bamboo Heat Pad',
-    category: 'Kitchen',
-    price: 120,
-    image: '/images/heat-pad.jpg',
-    description: 'Natural bamboo heat resistant pad for hot vessels'
+    name: 'Supali Haldi Kunku Set',
+    category: 'Pooja Items',
+    price: 0, // UPDATE PRICE
+    image: '/supali haldi kunku.jpeg',
+    description: 'Traditional supali design haldi kunku holder'
   },
   {
     id: 10,
-    name: 'Colorful Storage Containers (Set of 6)',
-    category: 'Kitchen',
-    price: 250,
-    image: '/images/containers.jpg',
-    description: 'BPA free, microwave safe containers in pastel colors'
+    name: 'Haldi Kunku Basket Set',
+    category: 'Pooja Items',
+    price: 0, // UPDATE PRICE
+    image: '/haldi kunku basket.jpg',
+    description: 'Decorative basket style haldi kunku set'
   },
   {
     id: 11,
-    name: 'Banana Leaf Serving Plate (Set of 2)',
-    category: 'Kitchen',
-    price: 180,
-    image: '/images/banana-leaf.jpg',
-    description: 'Traditional style melamine banana leaf plates'
+    name: 'Agarbatti Stand',
+    category: 'Pooja Items',
+    price: 0, // UPDATE PRICE
+    image: '/Agarbatti Stand_image.png',
+    description: 'Elegant incense stick holder'
   },
+
+  // =====================
+  // KITCHEN ITEMS
+  // =====================
   {
     id: 12,
-    name: 'Floral Design Serving Tray',
+    name: 'Stainless Steel Grater',
     category: 'Kitchen',
-    price: 150,
-    image: '/images/serving-tray.jpg',
-    description: 'Elegant black tray with golden floral print'
+    price: 0, // UPDATE PRICE
+    image: '/Grater.png',
+    description: 'Multi-purpose kitchen grater'
   },
   {
     id: 13,
-    name: 'Round Storage Boxes (Set of 6)',
+    name: 'Square Heat Pad',
     category: 'Kitchen',
-    price: 200,
-    image: '/images/round-boxes.jpg',
-    description: 'Colorful airtight storage containers'
+    price: 0, // UPDATE PRICE
+    image: '/Square heat pad.jpeg',
+    description: 'Bamboo heat resistant pad - square shape'
   },
-
-  // Bags & Pouches
   {
     id: 14,
-    name: 'Embroidered Rangoli Pouch',
-    category: 'Bags',
-    price: 150,
-    image: '/images/rangoli-pouch.jpg',
-    description: 'Yellow pouch with traditional rangoli embroidery'
+    name: 'Circle Heat Pad',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/heat pad circle.png',
+    description: 'Bamboo heat resistant pad - round shape'
   },
   {
     id: 15,
-    name: 'Pink Floral Embroidered Wallet',
-    category: 'Bags',
-    price: 180,
-    image: '/images/pink-wallet.jpg',
-    description: 'Handcrafted pink wallet with sequin flowers'
+    name: 'Leaf Tray (Large)',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Leaf Tray.png',
+    description: 'Decorative leaf shaped serving tray'
   },
   {
     id: 16,
-    name: 'Cream Floral Pouch Set',
-    category: 'Bags',
-    price: 220,
-    image: '/images/cream-pouch.jpg',
-    description: 'Set of 2 embroidered cream pouches'
+    name: 'Leaf Tray Set',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Leaf tray comparison.jpeg',
+    description: 'Set of leaf shaped trays in different sizes'
   },
   {
     id: 17,
-    name: 'Patchwork Designer Pouch',
-    category: 'Bags',
-    price: 200,
-    image: '/images/patchwork-pouch.jpg',
-    description: 'Colorful Rajasthani patchwork design pouch'
+    name: 'Rectangle Serving Tray',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Reactnagle tray_size.jpeg',
+    description: 'Elegant rectangular serving tray'
   },
   {
     id: 18,
-    name: 'Namaste Thank You Bag',
-    category: 'Bags',
-    price: 80,
-    image: '/images/thankyou-bag.jpg',
-    description: 'Jute gift bag with beautiful namaste print'
+    name: 'Medium Size Strainer',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Medium size strainer.png',
+    description: 'Stainless steel kitchen strainer'
   },
-
-  // Gift Items
   {
     id: 19,
-    name: 'Crystal Glass Turtle (Large)',
-    category: 'Gift Items',
-    price: 350,
-    image: '/images/turtle-large.jpg',
-    description: 'Vastu Shastra crystal turtle for positive energy'
+    name: 'Pot Stand',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Pot Stand.png',
+    description: 'Heat resistant pot stand for kitchen'
   },
   {
     id: 20,
-    name: 'Crystal Glass Turtle (Small)',
-    category: 'Gift Items',
-    price: 200,
-    image: '/images/turtle-small.jpg',
-    description: 'Small crystal turtle for good luck'
+    name: 'Small Round Container',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Small Round container.png',
+    description: 'Colorful small round storage container'
   },
   {
     id: 21,
-    name: 'Decorative Flower Candles (Set of 12)',
-    category: 'Gift Items',
-    price: 280,
-    image: '/images/flower-candles.jpg',
-    description: 'Beautiful floating flower candles in gold basket'
+    name: 'Small Round Container Set',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Round small conatiner.jpeg',
+    description: 'Set of small round storage containers'
   },
   {
     id: 22,
-    name: 'Golden Ganesh Diya Peacock',
+    name: 'Medium Round Container',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Med size round container.png',
+    description: 'Medium size round storage container'
+  },
+  {
+    id: 24,
+    name: 'Small Square Container',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Small Square container.png',
+    description: 'Small square storage container'
+  },
+  {
+    id: 25,
+    name: 'Ethnic Round Container',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Ethnic round container.png',
+    description: 'Decorative ethnic design round container'
+  },
+  {
+    id: 26,
+    name: 'Heart Multi Container',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Heart Multi Container.png',
+    description: 'Heart shaped multi-compartment container'
+  },
+  {
+    id: 27,
+    name: 'Glass Bottle',
+    category: 'Kitchen',
+    price: 0, // UPDATE PRICE
+    image: '/Glass Bottle Image.png',
+    description: 'Decorative glass bottle for storage'
+  },
+
+  // =====================
+  // BAGS & POUCHES
+  // =====================
+  {
+    id: 29,
+    name: 'Hand Purse (Embroidered)',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Hand Purse.jpeg',
+    description: 'Beautiful embroidered hand purse'
+  },
+  {
+    id: 30,
+    name: 'Hand Purse (Floral)',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/hand_purse_1.jpeg',
+    description: 'Floral design hand purse'
+  },
+  {
+    id: 32,
+    name: 'Red Hand Purse Variety',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Red hand purse variety.jpeg',
+    description: 'Red hand purse with variety patterns'
+  },
+  {
+    id: 33,
+    name: 'Ethnic Potli Bag',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Ethnic Potli image.png',
+    description: 'Traditional ethnic potli bag'
+  },
+  {
+    id: 34,
+    name: 'Warli Painting Bag',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Varali painting bag.png',
+    description: 'Bag with traditional Warli art design'
+  },
+  {
+    id: 35,
+    name: 'Thank You Cloth Bag',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Thank you cloth bag.jpeg',
+    description: 'Eco-friendly cloth bag with thank you print'
+  },
+  {
+    id: 36,
+    name: 'Traditional Cloth Bag',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Traditional cloth bag_1.jpeg',
+    description: 'Traditional design cloth shopping bag'
+  },
+  {
+    id: 37,
+    name: 'Foldable Shopping Bag',
+    category: 'Bags',
+    price: 0, // UPDATE PRICE
+    image: '/Foldable Bag Image.png',
+    description: 'Compact foldable shopping bag'
+  },
+
+  // =====================
+  // GIFT ITEMS
+  // =====================
+  {
+    id: 38,
+    name: 'Glass Turtle Set',
     category: 'Gift Items',
-    price: 320,
-    image: '/images/ganesh-peacock.jpg',
-    description: 'Decorative Ganesha with peacock diya holder'
+    price: 0, // UPDATE PRICE
+    image: '/Glass turtle comparison.jpeg',
+    description: 'Crystal glass turtle set for good luck'
+  },
+  {
+    id: 39,
+    name: 'Decorative Basket',
+    category: 'Gift Items',
+    price: 0, // UPDATE PRICE
+    image: '/basket_image.png',
+    description: 'Beautiful decorative gift basket'
   }
 ];
 
