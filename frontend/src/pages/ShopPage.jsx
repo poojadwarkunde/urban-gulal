@@ -254,31 +254,31 @@ function ShopPage() {
     return null
   }
 
-  // Send WhatsApp message for new order
-  const sendOrderConfirmationWhatsApp = (order) => {
-    const phoneFormatted = formatPhoneForWhatsApp(order.phone)
-    if (!phoneFormatted) return
-    
+  // Admin WhatsApp number for order notifications
+  const ADMIN_WHATSAPP = '917722039146'
+
+  // Send WhatsApp message to admin for new order
+  const sendOrderToAdmin = (order) => {
     const itemsList = order.items.map(i => `${i.name} x${i.qty}`).join('\n• ')
     const addressFull = `${order.address}${order.city ? ', ' + order.city : ''}${order.pincode ? ' - ' + order.pincode : ''}`
     
-    const message = `🎨 *Urban Gulal - Order Confirmed!*
+    const message = `🔔 *NEW ORDER - Urban Gulal*
 
 📋 Order #${order.id || order.orderId}
-👤 ${order.customerName}
-📍 ${addressFull}
+👤 Customer: ${order.customerName}
+📱 Phone: ${order.phone}
+📍 Address: ${addressFull}
 
 🛍️ *Items:*
 • ${itemsList}
 
 💰 *Total: ₹${order.totalAmount}*
+${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
 
-✅ We've received your order and will process it soon!
-
-Thank you for shopping with Urban Gulal! 🙏`
+⏰ ${new Date().toLocaleString('en-IN')}`
 
     const encodedMessage = encodeURIComponent(message)
-    window.open(`https://wa.me/${phoneFormatted}?text=${encodedMessage}`, '_blank')
+    window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodedMessage}`, '_blank')
   }
 
   const handlePlaceOrder = async () => {
@@ -308,8 +308,8 @@ Thank you for shopping with Urban Gulal! 🙏`
       
       const orderData = await response.json()
       
-      // Send WhatsApp confirmation to customer
-      sendOrderConfirmationWhatsApp({
+      // Send WhatsApp notification to admin with order details
+      sendOrderToAdmin({
         ...orderData,
         customerName: customerName.trim(),
         phone: phone.trim(),
@@ -317,7 +317,8 @@ Thank you for shopping with Urban Gulal! 🙏`
         city: city.trim(),
         pincode: pincode.trim(),
         items: cartItems.map(({ name, qty, price }) => ({ name, qty, price })),
-        totalAmount
+        totalAmount,
+        notes: notes.trim()
       })
 
       setOrderSuccess(true)
