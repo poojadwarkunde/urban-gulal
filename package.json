@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "echo 'Run backend and frontend separately'",
-    "build": "cd frontend && npm install && npm run build && mkdir -p ../backend/public && cp -r dist/* ../backend/public/",
+    "build": "npm config set registry https://registry.npmjs.org/ && cd frontend && npm install --registry https://registry.npmjs.org/ && npm run build && mkdir -p ../backend/public && cp -r dist/* ../backend/public/",
     "start": "cd backend && node server.js",
-    "postinstall": "cd backend && npm install"
+    "postinstall": "npm config set registry https://registry.npmjs.org/ && cd backend && npm install --registry https://registry.npmjs.org/"
   }
 }
