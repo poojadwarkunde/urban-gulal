@@ -214,6 +214,18 @@ body {
   text-decoration: underline;
 }
 
+/* Login Required */
+.login-required {
+  text-align: center;
+}
+
+.login-hint {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
 .close-btn {
   position: absolute;
   top: 15px;

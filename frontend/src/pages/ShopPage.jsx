@@ -403,9 +403,18 @@ function ShopPage() {
                     <span>Total</span>
                     <strong>₹{totalAmount}</strong>
                   </div>
-                  <button className="btn btn-primary" onClick={() => { setShowCart(false); setShowCheckout(true); }}>
-                    Proceed to Checkout →
-                  </button>
+                  {user ? (
+                    <button className="btn btn-primary" onClick={() => { setShowCart(false); setShowCheckout(true); }}>
+                      Proceed to Checkout →
+                    </button>
+                  ) : (
+                    <div className="login-required">
+                      <p className="login-hint">⚠️ Please login to place order</p>
+                      <button className="btn btn-primary" onClick={() => { setShowCart(false); setShowAuth(true); }}>
+                        Login to Continue →
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             )}
