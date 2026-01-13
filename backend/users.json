@@ -1,4 +1,11 @@
 {
-  "users": [],
-  "nextUserId": 1
+  "users": [
+    {
+      "id": 1,
+      "name": "Test User",
+      "mobile": "9876543210",
+      "createdAt": "2026-01-13T07:56:40.368Z"
+    }
+  ],
+  "nextUserId": 2
 }
