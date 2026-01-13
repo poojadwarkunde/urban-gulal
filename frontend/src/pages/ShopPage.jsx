@@ -25,6 +25,26 @@ function ShopPage() {
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
+  
+  // User authentication state
+  const [user, setUser] = useState(null)
+  const [showAuth, setShowAuth] = useState(false)
+  const [authMode, setAuthMode] = useState('login') // 'login' or 'register'
+  const [authName, setAuthName] = useState('')
+  const [authMobile, setAuthMobile] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem('urbanGulalUser')
+    if (savedUser) {
+      const userData = JSON.parse(savedUser)
+      setUser(userData)
+      setCustomerName(userData.name)
+      setPhone(userData.mobile)
+    }
+  }, [])
 
   // Fetch products from API
   useEffect(() => {
@@ -47,6 +67,77 @@ function ShopPage() {
     }
     fetchProducts()
   }, [])
+
+  // Authentication handlers
+  const handleAuth = async () => {
+    setAuthError('')
+    setAuthLoading(true)
+    
+    try {
+      if (authMode === 'register') {
+        if (!authName.trim()) {
+          setAuthError('Please enter your name')
+          setAuthLoading(false)
+          return
+        }
+        if (!/^\d{10}$/.test(authMobile)) {
+          setAuthError('Please enter valid 10-digit mobile number')
+          setAuthLoading(false)
+          return
+        }
+        
+        const response = await fetch('/api/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: authName.trim(), mobile: authMobile })
+        })
+        
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Registration failed')
+        
+        setUser(data.user)
+        localStorage.setItem('urbanGulalUser', JSON.stringify(data.user))
+        setCustomerName(data.user.name)
+        setPhone(data.user.mobile)
+        setShowAuth(false)
+        setAuthName('')
+        setAuthMobile('')
+      } else {
+        if (!/^\d{10}$/.test(authMobile)) {
+          setAuthError('Please enter valid 10-digit mobile number')
+          setAuthLoading(false)
+          return
+        }
+        
+        const response = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile: authMobile })
+        })
+        
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Login failed')
+        
+        setUser(data.user)
+        localStorage.setItem('urbanGulalUser', JSON.stringify(data.user))
+        setCustomerName(data.user.name)
+        setPhone(data.user.mobile)
+        setShowAuth(false)
+        setAuthMobile('')
+      }
+    } catch (err) {
+      setAuthError(err.message)
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+  
+  const handleLogout = () => {
+    setUser(null)
+    localStorage.removeItem('urbanGulalUser')
+    setCustomerName('')
+    setPhone('')
+  }
 
   const addToCart = (productId, askQty = false) => {
     if (askQty) {
@@ -131,8 +222,11 @@ function ShopPage() {
       setCart({})
       setShowCheckout(false)
       setShowCart(false)
-      setCustomerName('')
-      setPhone('')
+      // Keep user info if logged in
+      if (!user) {
+        setCustomerName('')
+        setPhone('')
+      }
       setAddress('')
       setCity('')
       setPincode('')
@@ -183,9 +277,21 @@ function ShopPage() {
               <p className="tagline">Decorative & Gift Items</p>
             </div>
           </div>
-          <button className="cart-btn" onClick={() => setShowCart(true)}>
-            🛒 <span className="cart-badge">{totalItems}</span>
-          </button>
+          <div className="header-actions">
+            {user ? (
+              <div className="user-info">
+                <span className="user-name">👤 {user.name}</span>
+                <button className="logout-btn" onClick={handleLogout}>Logout</button>
+              </div>
+            ) : (
+              <button className="login-btn" onClick={() => setShowAuth(true)}>
+                👤 Login
+              </button>
+            )}
+            <button className="cart-btn" onClick={() => setShowCart(true)}>
+              🛒 <span className="cart-badge">{totalItems}</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -385,6 +491,54 @@ function ShopPage() {
               >
                 {submitting ? 'Placing Order...' : 'Place Order'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Modal */}
+      {showAuth && (
+        <div className="auth-overlay" onClick={() => setShowAuth(false)}>
+          <div className="auth-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setShowAuth(false)}>×</button>
+            <h2>{authMode === 'login' ? '👤 Login' : '📝 Register'}</h2>
+            
+            {authError && <div className="auth-error">{authError}</div>}
+            
+            <div className="auth-form">
+              {authMode === 'register' && (
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={authName}
+                  onChange={e => setAuthName(e.target.value)}
+                  className="input"
+                />
+              )}
+              <input
+                type="tel"
+                placeholder="Mobile Number (10 digits)"
+                value={authMobile}
+                onChange={e => setAuthMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                className="input"
+                maxLength={10}
+              />
+              
+              <button 
+                className="btn btn-primary auth-submit"
+                onClick={handleAuth}
+                disabled={authLoading}
+              >
+                {authLoading ? 'Please wait...' : (authMode === 'login' ? 'Login' : 'Register')}
+              </button>
+            </div>
+            
+            <div className="auth-switch">
+              {authMode === 'login' ? (
+                <p>New user? <button onClick={() => { setAuthMode('register'); setAuthError(''); }}>Register here</button></p>
+              ) : (
+                <p>Already registered? <button onClick={() => { setAuthMode('login'); setAuthError(''); }}>Login here</button></p>
+              )}
             </div>
           </div>
         </div>
