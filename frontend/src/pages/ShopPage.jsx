@@ -40,6 +40,9 @@ function ShopPage() {
   const [orderHistory, setOrderHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
   
+  // Image zoom state
+  const [zoomImage, setZoomImage] = useState(null)
+  
   // Load user from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('urbanGulalUser')
@@ -421,7 +424,11 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
       <main className="products-grid">
         {filteredProducts.map(product => (
           <div key={product.id} className={`product-card ${product.inStock === false ? 'out-of-stock' : ''}`}>
-            <div className="product-image">
+            <div 
+              className="product-image zoomable"
+              onClick={() => setZoomImage({ src: product.image, name: product.name, emoji: product.emoji })}
+              title="Tap to zoom"
+            >
               {product.inStock === false && (
                 <div className="out-of-stock-badge">Out of Stock</div>
               )}
@@ -434,6 +441,7 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
                 }}
               />
               <span className="product-emoji" style={{display: 'none'}}>{product.emoji}</span>
+              <span className="zoom-icon">🔍</span>
             </div>
             <div className="product-info">
               <span className="product-category">{product.category}</span>
@@ -742,6 +750,26 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Image Zoom Modal */}
+      {zoomImage && (
+        <div className="zoom-overlay" onClick={() => setZoomImage(null)}>
+          <div className="zoom-modal" onClick={e => e.stopPropagation()}>
+            <button className="zoom-close-btn" onClick={() => setZoomImage(null)}>×</button>
+            <img 
+              src={zoomImage.src} 
+              alt={zoomImage.name}
+              className="zoom-image"
+              onError={(e) => {
+                e.target.style.display = 'none'
+                e.target.nextSibling.style.display = 'flex'
+              }}
+            />
+            <span className="zoom-emoji-fallback" style={{display: 'none'}}>{zoomImage.emoji}</span>
+            <p className="zoom-title">{zoomImage.name}</p>
           </div>
         </div>
       )}
