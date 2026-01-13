@@ -8,11 +8,13 @@ const SORT_OPTIONS = [
   { value: 'amount-high', label: 'Amount: High to Low' },
   { value: 'amount-low', label: 'Amount: Low to High' },
 ]
+const CATEGORY_OPTIONS = ['Pooja Items', 'Kitchen', 'Bags', 'Gift Items']
 
 function AdminPage() {
   const [activeTab, setActiveTab] = useState('orders')
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editingPrices, setEditingPrices] = useState({})
@@ -35,6 +37,18 @@ function AdminPage() {
   
   // Notification modal state
   const [notifyModal, setNotifyModal] = useState({ show: false, order: null })
+  
+  // Product edit modal state
+  const [productModal, setProductModal] = useState({ show: false, product: null, isNew: false })
+  const [productForm, setProductForm] = useState({
+    name: '', description: '', image: '', category: '', price: 0, available: true
+  })
+  const [savingProduct, setSavingProduct] = useState(false)
+  
+  // Product filter
+  const [productCategoryFilter, setProductCategoryFilter] = useState('All')
+  const [productSearch, setProductSearch] = useState('')
+  const [showUnavailable, setShowUnavailable] = useState(true)
 
   const fetchOrders = async () => {
     try {
@@ -53,7 +67,7 @@ function AdminPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products')
+      const response = await fetch('/api/products?includeHidden=true')
       if (!response.ok) throw new Error('Failed to fetch products')
       const data = await response.json()
       setProducts(data)
@@ -65,9 +79,22 @@ function AdminPage() {
     }
   }
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data)
+      }
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
+  }
+
   useEffect(() => {
     fetchOrders()
     fetchProducts()
+    fetchCategories()
     const interval = setInterval(fetchOrders, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -121,6 +148,84 @@ function AdminPage() {
     }
   }
 
+  // Product management functions
+  const openProductEdit = (product) => {
+    setProductForm({
+      name: product.name,
+      description: product.description || '',
+      image: product.image || '',
+      category: product.category,
+      price: product.price || 0,
+      available: product.available !== false
+    })
+    setProductModal({ show: true, product, isNew: false })
+  }
+
+  const openAddProduct = () => {
+    setProductForm({
+      name: '',
+      description: '',
+      image: '',
+      category: CATEGORY_OPTIONS[0],
+      price: 0,
+      available: true
+    })
+    setProductModal({ show: true, product: null, isNew: true })
+  }
+
+  const handleSaveProduct = async () => {
+    if (!productForm.name.trim()) {
+      alert('Product name is required')
+      return
+    }
+    
+    setSavingProduct(true)
+    try {
+      if (productModal.isNew) {
+        // Add new product
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productForm)
+        })
+        if (!response.ok) throw new Error('Failed to add product')
+        alert('Product added successfully!')
+      } else {
+        // Update existing product
+        const response = await fetch(`/api/products/${productModal.product.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productForm)
+        })
+        if (!response.ok) throw new Error('Failed to update product')
+        alert('Product updated successfully!')
+      }
+      
+      await fetchProducts()
+      setProductModal({ show: false, product: null, isNew: false })
+    } catch (err) {
+      alert('Failed to save product: ' + err.message)
+      console.error(err)
+    } finally {
+      setSavingProduct(false)
+    }
+  }
+
+  const toggleProductAvailability = async (product) => {
+    try {
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ available: !product.available })
+      })
+      if (!response.ok) throw new Error('Failed to update')
+      await fetchProducts()
+    } catch (err) {
+      alert('Failed to toggle availability')
+      console.error(err)
+    }
+  }
+
   const sendWhatsAppMessage = (order, message) => {
     const phone = order.phone.startsWith('+') ? order.phone : `+91${order.phone}`
     const encodedMessage = encodeURIComponent(message)
@@ -145,23 +250,6 @@ function AdminPage() {
         return `❌ Urban Gulal: Your order #${order.id} has been cancelled.\n\nReason: ${order.cancelReason || 'N/A'}\n\nIf you have questions, please contact us.`
       default:
         return `🎨 Urban Gulal: Update for your order #${order.id}\n\nStatus: ${order.status}\nItems: ${itemsList}\nTotal: ₹${order.totalAmount}`
-    }
-  }
-
-  const updatePrice = async (productId, price) => {
-    try {
-      const response = await fetch(`/api/products/${productId}/price`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price: parseInt(price) })
-      })
-      if (!response.ok) throw new Error('Failed to update price')
-      setProducts(prev => prev.map(p => 
-        p.id === productId ? { ...p, price: parseInt(price) } : p
-      ))
-    } catch (err) {
-      alert('Failed to update price')
-      console.error(err)
     }
   }
 
@@ -195,22 +283,15 @@ function AdminPage() {
   const getFilteredOrders = () => {
     let filtered = [...orders]
     
-    // Status filter
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter(o => o.status === statusFilter)
     }
-    
-    // Payment filter
     if (paymentFilter !== 'ALL') {
       filtered = filtered.filter(o => o.paymentStatus === paymentFilter)
     }
-    
-    // Date filter
     if (dateFilter) {
       filtered = filtered.filter(o => o.createdAt.startsWith(dateFilter))
     }
-    
-    // Search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(o => 
@@ -221,7 +302,6 @@ function AdminPage() {
       )
     }
     
-    // Sort
     switch (sortBy) {
       case 'oldest':
         filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
@@ -232,16 +312,36 @@ function AdminPage() {
       case 'amount-low':
         filtered.sort((a, b) => a.totalAmount - b.totalAmount)
         break
-      default: // newest
+      default:
         filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     }
     
     return filtered
   }
 
-  // Group orders by status
   const getOrdersByStatus = (status) => {
     return getFilteredOrders().filter(o => o.status === status)
+  }
+
+  // Filter products
+  const getFilteredProducts = () => {
+    let filtered = [...products]
+    
+    if (!showUnavailable) {
+      filtered = filtered.filter(p => p.available !== false)
+    }
+    if (productCategoryFilter !== 'All') {
+      filtered = filtered.filter(p => p.category === productCategoryFilter)
+    }
+    if (productSearch.trim()) {
+      const query = productSearch.toLowerCase()
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.description?.toLowerCase().includes(query)
+      )
+    }
+    
+    return filtered
   }
 
   const today = new Date().toISOString().split('T')[0]
@@ -280,7 +380,7 @@ function AdminPage() {
     }
   }
 
-  const productsByCategory = products.reduce((acc, p) => {
+  const productsByCategory = getFilteredProducts().reduce((acc, p) => {
     if (!acc[p.category]) acc[p.category] = []
     acc[p.category].push(p)
     return acc
@@ -419,7 +519,7 @@ function AdminPage() {
           className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`}
           onClick={() => setActiveTab('products')}
         >
-          🏷️ Products
+          🏷️ Products ({products.length})
         </button>
       </div>
 
@@ -521,7 +621,7 @@ function AdminPage() {
         </>
       )}
 
-      {/* Status Tab - Orders grouped by status */}
+      {/* Status Tab */}
       {activeTab === 'status' && (
         <section className="status-sections">
           {STATUS_OPTIONS.map(status => {
@@ -545,14 +645,49 @@ function AdminPage() {
       {activeTab === 'products' && (
         <section className="products-section">
           <div className="products-header">
-            <h2>🏷️ Product Prices ({products.length} items)</h2>
-            <button 
-              className="btn btn-primary save-all-btn"
-              onClick={saveAllPrices}
-              disabled={savingPrices}
+            <h2>🏷️ Product Management ({products.length} items)</h2>
+            <div className="products-actions">
+              <button 
+                className="btn btn-primary"
+                onClick={openAddProduct}
+              >
+                ➕ Add Product
+              </button>
+              <button 
+                className="btn btn-success save-all-btn"
+                onClick={saveAllPrices}
+                disabled={savingPrices}
+              >
+                {savingPrices ? 'Saving...' : '💾 Save All Prices'}
+              </button>
+            </div>
+          </div>
+
+          {/* Product Filters */}
+          <div className="product-filters">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={productSearch}
+              onChange={e => setProductSearch(e.target.value)}
+              className="filter-input"
+            />
+            <select 
+              value={productCategoryFilter} 
+              onChange={e => setProductCategoryFilter(e.target.value)}
+              className="filter-select"
             >
-              {savingPrices ? 'Saving...' : '💾 Save All Prices'}
-            </button>
+              <option value="All">All Categories</option>
+              {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={showUnavailable}
+                onChange={e => setShowUnavailable(e.target.checked)}
+              />
+              Show Unavailable
+            </label>
           </div>
 
           {Object.entries(productsByCategory).map(([category, categoryProducts]) => (
@@ -560,13 +695,14 @@ function AdminPage() {
               <h3 className="category-title">{category} ({categoryProducts.length})</h3>
               <div className="price-grid">
                 {categoryProducts.map(product => (
-                  <div key={product.id} className="price-card">
+                  <div key={product.id} className={`price-card ${!product.available ? 'unavailable' : ''}`}>
                     <div className="price-card-image">
                       <img 
                         src={product.image} 
                         alt={product.name}
                         onError={(e) => { e.target.style.display = 'none' }}
                       />
+                      {!product.available && <span className="unavailable-badge">Hidden</span>}
                     </div>
                     <div className="price-card-info">
                       <span className="price-card-name">{product.name}</span>
@@ -580,6 +716,20 @@ function AdminPage() {
                           className="price-input"
                           placeholder="0"
                         />
+                      </div>
+                      <div className="product-card-actions">
+                        <button 
+                          className="btn-sm btn-edit"
+                          onClick={() => openProductEdit(product)}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          className={`btn-sm ${product.available ? 'btn-hide' : 'btn-show'}`}
+                          onClick={() => toggleProductAvailability(product)}
+                        >
+                          {product.available ? '👁️ Hide' : '👁️ Show'}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -679,6 +829,108 @@ function AdminPage() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Product Edit Modal */}
+      {productModal.show && (
+        <div className="modal-overlay" onClick={() => setProductModal({ show: false, product: null, isNew: false })}>
+          <div className="modal product-modal" onClick={e => e.stopPropagation()}>
+            <h2>{productModal.isNew ? '➕ Add New Product' : '✏️ Edit Product'}</h2>
+            
+            <div className="form-group">
+              <label>Product Name *</label>
+              <input
+                type="text"
+                value={productForm.name}
+                onChange={e => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter product name"
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={productForm.description}
+                onChange={e => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Product description..."
+                className="form-textarea"
+                rows={2}
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Category *</label>
+                <select
+                  value={productForm.category}
+                  onChange={e => setProductForm(prev => ({ ...prev, category: e.target.value }))}
+                  className="form-select"
+                >
+                  {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Price (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={productForm.price}
+                  onChange={e => setProductForm(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Image Path</label>
+              <input
+                type="text"
+                value={productForm.image}
+                onChange={e => setProductForm(prev => ({ ...prev, image: e.target.value }))}
+                placeholder="/image.jpg or https://..."
+                className="form-input"
+              />
+              {productForm.image && (
+                <div className="image-preview">
+                  <img 
+                    src={productForm.image} 
+                    alt="Preview" 
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={productForm.available}
+                  onChange={e => setProductForm(prev => ({ ...prev, available: e.target.checked }))}
+                />
+                Available for purchase
+              </label>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setProductModal({ show: false, product: null, isNew: false })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleSaveProduct}
+                disabled={savingProduct}
+              >
+                {savingProduct ? 'Saving...' : 'Save Product'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -8,9 +8,10 @@ const { PRODUCTS, CATEGORIES } = require('./products');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Prices storage
+// Storage files
 const PRICES_FILE = path.join(__dirname, 'prices.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
+const PRODUCT_OVERRIDES_FILE = path.join(__dirname, 'product_overrides.json');
 
 function loadPrices() {
   try {
@@ -26,6 +27,23 @@ function loadPrices() {
 
 function savePrices(prices) {
   fs.writeFileSync(PRICES_FILE, JSON.stringify({ prices }, null, 2));
+}
+
+// Product overrides storage (for name, description, image, availability)
+function loadProductOverrides() {
+  try {
+    if (fs.existsSync(PRODUCT_OVERRIDES_FILE)) {
+      const data = fs.readFileSync(PRODUCT_OVERRIDES_FILE, 'utf8');
+      return JSON.parse(data).products || {};
+    }
+  } catch (err) {
+    console.error('Error loading product overrides:', err);
+  }
+  return {};
+}
+
+function saveProductOverrides(products) {
+  fs.writeFileSync(PRODUCT_OVERRIDES_FILE, JSON.stringify({ products }, null, 2));
 }
 
 // Users storage
@@ -57,15 +75,29 @@ app.use(express.json());
 // Serve static frontend files in production
 app.use(express.static(path.join(__dirname, 'public')));
 
-// GET all products (with dynamic prices)
+// GET all products (with dynamic prices and overrides)
 app.get('/api/products', (req, res) => {
-  const { category } = req.query;
+  const { category, includeHidden } = req.query;
   const prices = loadPrices();
+  const overrides = loadProductOverrides();
   
-  let products = PRODUCTS.map(p => ({
-    ...p,
-    price: prices[p.id] !== undefined ? prices[p.id] : p.price
-  }));
+  let products = PRODUCTS.map(p => {
+    const override = overrides[p.id] || {};
+    return {
+      ...p,
+      name: override.name || p.name,
+      description: override.description || p.description,
+      image: override.image || p.image,
+      category: override.category || p.category,
+      available: override.available !== undefined ? override.available : true,
+      price: prices[p.id] !== undefined ? prices[p.id] : p.price
+    };
+  });
+  
+  // Filter out unavailable products unless admin requests them
+  if (includeHidden !== 'true') {
+    products = products.filter(p => p.available !== false);
+  }
   
   if (category && category !== 'All') {
     products = products.filter(p => p.category === category);
@@ -121,6 +153,124 @@ app.put('/api/products/prices/bulk', (req, res) => {
   } catch (error) {
     console.error('Error bulk updating prices:', error);
     res.status(500).json({ error: 'Failed to update prices' });
+  }
+});
+
+// PUT update product details (Admin only)
+app.put('/api/products/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, image, category, available, price } = req.body;
+    
+    const product = PRODUCTS.find(p => p.id === parseInt(id));
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    // Update price if provided
+    if (price !== undefined) {
+      const prices = loadPrices();
+      prices[id] = parseInt(price);
+      savePrices(prices);
+    }
+    
+    // Update other fields via overrides
+    const overrides = loadProductOverrides();
+    if (!overrides[id]) overrides[id] = {};
+    
+    if (name !== undefined) overrides[id].name = name;
+    if (description !== undefined) overrides[id].description = description;
+    if (image !== undefined) overrides[id].image = image;
+    if (category !== undefined) overrides[id].category = category;
+    if (available !== undefined) overrides[id].available = available;
+    
+    saveProductOverrides(overrides);
+    
+    // Return updated product
+    const prices = loadPrices();
+    const updatedProduct = {
+      ...product,
+      name: overrides[id].name || product.name,
+      description: overrides[id].description || product.description,
+      image: overrides[id].image || product.image,
+      category: overrides[id].category || product.category,
+      available: overrides[id].available !== undefined ? overrides[id].available : true,
+      price: prices[id] !== undefined ? prices[id] : product.price
+    };
+    
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+// POST add new product (Admin only)
+app.post('/api/products', (req, res) => {
+  try {
+    const { name, description, image, category, price } = req.body;
+    
+    if (!name || !category) {
+      return res.status(400).json({ error: 'Name and category are required' });
+    }
+    
+    // Get next available ID
+    const maxId = Math.max(...PRODUCTS.map(p => p.id), 0);
+    const newId = maxId + 1;
+    
+    // Store in overrides as a new product
+    const overrides = loadProductOverrides();
+    overrides[newId] = {
+      id: newId,
+      name,
+      description: description || '',
+      image: image || '/placeholder.png',
+      category,
+      available: true,
+      isCustom: true // Mark as custom added product
+    };
+    saveProductOverrides(overrides);
+    
+    // Store price
+    if (price !== undefined) {
+      const prices = loadPrices();
+      prices[newId] = parseInt(price) || 0;
+      savePrices(prices);
+    }
+    
+    res.status(201).json({
+      id: newId,
+      name,
+      description: description || '',
+      image: image || '/placeholder.png',
+      category,
+      available: true,
+      price: price || 0
+    });
+  } catch (error) {
+    console.error('Error adding product:', error);
+    res.status(500).json({ error: 'Failed to add product' });
+  }
+});
+
+// GET custom products (ones added via admin)
+app.get('/api/products/custom', (req, res) => {
+  try {
+    const overrides = loadProductOverrides();
+    const prices = loadPrices();
+    
+    const customProducts = Object.entries(overrides)
+      .filter(([id, product]) => product.isCustom)
+      .map(([id, product]) => ({
+        ...product,
+        id: parseInt(id),
+        price: prices[id] || 0
+      }));
+    
+    res.json(customProducts);
+  } catch (error) {
+    console.error('Error fetching custom products:', error);
+    res.status(500).json({ error: 'Failed to fetch custom products' });
   }
 });
 
