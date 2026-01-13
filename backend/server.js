@@ -69,6 +69,18 @@ if (!fs.existsSync(USERS_FILE)) {
   console.log('Created users.json file');
 }
 
+// Initialize product overrides file if it doesn't exist
+if (!fs.existsSync(PRODUCT_OVERRIDES_FILE)) {
+  saveProductOverrides({});
+  console.log('Created product_overrides.json file');
+}
+
+// Initialize prices file if it doesn't exist
+if (!fs.existsSync(PRICES_FILE)) {
+  savePrices({});
+  console.log('Created prices.json file');
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -81,6 +93,7 @@ app.get('/api/products', (req, res) => {
   const prices = loadPrices();
   const overrides = loadProductOverrides();
   
+  // Start with base products
   let products = PRODUCTS.map(p => {
     const override = overrides[p.id] || {};
     return {
@@ -94,6 +107,23 @@ app.get('/api/products', (req, res) => {
       price: prices[p.id] !== undefined ? prices[p.id] : p.price
     };
   });
+  
+  // Add custom products (those with isCustom flag in overrides)
+  const customProducts = Object.entries(overrides)
+    .filter(([id, product]) => product.isCustom)
+    .map(([id, product]) => ({
+      id: parseInt(id),
+      name: product.name,
+      description: product.description || '',
+      image: product.image || '/placeholder.png',
+      category: product.category,
+      available: product.available !== undefined ? product.available : true,
+      inStock: product.inStock !== undefined ? product.inStock : true,
+      price: prices[id] !== undefined ? prices[id] : 0,
+      isCustom: true
+    }));
+  
+  products = [...products, ...customProducts];
   
   // Filter out unavailable products unless admin requests them
   if (includeHidden !== 'true') {
