@@ -663,6 +663,96 @@ body {
   color: var(--color-primary);
 }
 
+/* Custom Item Section */
+.custom-item-section {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border: 1px dashed var(--color-primary);
+  margin-bottom: 16px;
+}
+
+.custom-item-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.custom-name-input {
+  flex: 2;
+  min-width: 120px;
+}
+
+.custom-qty-input {
+  width: 60px;
+  flex: 0 0 60px;
+  text-align: center;
+}
+
+.custom-price-input {
+  width: 80px;
+  flex: 0 0 80px;
+}
+
+.btn-add-custom {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-custom:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-add-custom:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.custom-item-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--color-primary-dark);
+  font-style: italic;
+}
+
+.summary-item.custom-item {
+  background: #fff3e0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+.remove-custom-btn {
+  background: none;
+  border: none;
+  color: #e53935;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 0.85rem;
+  padding: 0 4px;
+}
+
+.remove-custom-btn:hover {
+  color: #b71c1c;
+}
+
+.instructions-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
 .checkout-form {
   display: flex;
   flex-direction: column;
