@@ -27,6 +27,7 @@ function AdminPage() {
   const [sortBy, setSortBy] = useState('newest')
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState('')
+  const [hideCompleted, setHideCompleted] = useState(true) // Hide completed orders by default
   
   // Cancel modal state
   const [cancelModal, setCancelModal] = useState({ show: false, orderId: null })
@@ -472,6 +473,11 @@ function AdminPage() {
   const getFilteredOrders = () => {
     let filtered = [...orders]
     
+    // Hide completed orders (delivered + paid) if toggle is on
+    if (hideCompleted) {
+      filtered = filtered.filter(o => !(o.status === 'DELIVERED' && o.paymentStatus === 'PAID'))
+    }
+    
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter(o => o.status === statusFilter)
     }
@@ -818,11 +824,27 @@ function AdminPage() {
                     setPaymentFilter('ALL')
                     setDateFilter('')
                     setSortBy('newest')
+                    setHideCompleted(true)
                   }}
                 >
                   Clear Filters
                 </button>
               </div>
+            </div>
+            <div className="filters-extra">
+              <label className="checkbox-label hide-completed-toggle">
+                <input
+                  type="checkbox"
+                  checked={hideCompleted}
+                  onChange={e => setHideCompleted(e.target.checked)}
+                />
+                <span>Hide Completed Orders</span>
+                {hideCompleted && (
+                  <span className="hidden-count">
+                    ({orders.filter(o => o.status === 'DELIVERED' && o.paymentStatus === 'PAID').length} hidden)
+                  </span>
+                )}
+              </label>
             </div>
           </section>
 
