@@ -619,7 +619,7 @@ app.get('/api/orders/history/:phone', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
   try {
-    const { customerName, phone, address, city, pincode, items, totalAmount, notes } = req.body;
+    const { customerName, phone, address, city, pincode, items, totalAmount, notes, createdAt, status, paymentStatus } = req.body;
 
     if (!customerName || !phone || !address || !items || items.length === 0) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -635,15 +635,17 @@ app.post('/api/orders', async (req, res) => {
       pincode: pincode || '',
       items,
       totalAmount,
-      status: 'NEW',
-      paymentStatus: 'PENDING',
-      notes: notes || ''
+      status: status || 'NEW',
+      paymentStatus: paymentStatus || 'PENDING',
+      notes: notes || '',
+      createdAt: createdAt ? new Date(createdAt) : new Date()
     });
 
     await order.save();
     
     // Log new order for admin (WhatsApp removed - use SMS or manual notification)
-    console.log('📋 New order created:', order.orderId, '- Customer:', order.customerName);
+    const isBackdated = createdAt && new Date(createdAt).toDateString() !== new Date().toDateString();
+    console.log(`📋 ${isBackdated ? 'Backdated order' : 'New order'} created: #${order.orderId} - Customer: ${order.customerName}`);
     
     // Auto-generate and upload reports to GitHub
     generateAndUploadReports().catch(err => console.error('Report generation error:', err));

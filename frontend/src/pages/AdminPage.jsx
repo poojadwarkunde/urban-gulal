@@ -64,9 +64,140 @@ function AdminPage() {
   const [collapsedSections, setCollapsedSections] = useState({
     completed: true // Auto-collapse completed orders
   })
+  
+  // Create Order modal state
+  const [createOrderModal, setCreateOrderModal] = useState(false)
+  const [newOrderForm, setNewOrderForm] = useState({
+    customerName: '',
+    phone: '',
+    address: '',
+    city: '',
+    pincode: '',
+    notes: '',
+    orderDate: new Date().toISOString().split('T')[0],
+    orderTime: new Date().toTimeString().slice(0, 5),
+    status: 'NEW',
+    paymentStatus: 'PENDING'
+  })
+  const [newOrderItems, setNewOrderItems] = useState({})
+  const [newOrderCustomItems, setNewOrderCustomItems] = useState([])
+  const [newOrderCustomItem, setNewOrderCustomItem] = useState({ name: '', qty: 1, price: '' })
+  const [creatingOrder, setCreatingOrder] = useState(false)
 
   const toggleSection = (section) => {
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }))
+  }
+
+  // Create order functions
+  const openCreateOrderModal = () => {
+    setNewOrderForm({
+      customerName: '',
+      phone: '',
+      address: '',
+      city: '',
+      pincode: '',
+      notes: '',
+      orderDate: new Date().toISOString().split('T')[0],
+      orderTime: new Date().toTimeString().slice(0, 5),
+      status: 'NEW',
+      paymentStatus: 'PENDING'
+    })
+    setNewOrderItems({})
+    setNewOrderCustomItems([])
+    setNewOrderCustomItem({ name: '', qty: 1, price: '' })
+    setCreateOrderModal(true)
+  }
+
+  const handleNewOrderItemSelect = (product, qty) => {
+    if (qty > 0) {
+      setNewOrderItems(prev => ({ ...prev, [product.id]: { ...product, qty } }))
+    } else {
+      setNewOrderItems(prev => {
+        const updated = { ...prev }
+        delete updated[product.id]
+        return updated
+      })
+    }
+  }
+
+  const addNewOrderCustomItem = () => {
+    if (newOrderCustomItem.name.trim() && newOrderCustomItem.qty > 0) {
+      setNewOrderCustomItems(prev => [...prev, { ...newOrderCustomItem, id: Date.now() }])
+      setNewOrderCustomItem({ name: '', qty: 1, price: '' })
+    }
+  }
+
+  const removeNewOrderCustomItem = (id) => {
+    setNewOrderCustomItems(prev => prev.filter(item => item.id !== id))
+  }
+
+  const getNewOrderTotal = () => {
+    const catalogTotal = Object.values(newOrderItems).reduce((sum, item) => sum + (item.price * item.qty), 0)
+    const customTotal = newOrderCustomItems.reduce((sum, item) => sum + ((parseInt(item.price) || 0) * item.qty), 0)
+    return catalogTotal + customTotal
+  }
+
+  const handleCreateOrder = async () => {
+    if (!newOrderForm.customerName.trim() || !newOrderForm.phone.trim() || !newOrderForm.address.trim()) {
+      alert('Please enter customer name, phone, and address')
+      return
+    }
+    
+    const catalogItems = Object.values(newOrderItems).filter(item => item.qty > 0).map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      qty: item.qty
+    }))
+    const customItems = newOrderCustomItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: parseInt(item.price) || 0,
+      qty: parseInt(item.qty) || 1
+    }))
+    
+    const allItems = [...catalogItems, ...customItems]
+    
+    if (allItems.length === 0) {
+      alert('Please add at least one item to the order')
+      return
+    }
+    
+    const totalAmount = getNewOrderTotal()
+    const orderDateTime = new Date(`${newOrderForm.orderDate}T${newOrderForm.orderTime}`)
+    
+    setCreatingOrder(true)
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: newOrderForm.customerName.trim(),
+          phone: newOrderForm.phone.trim(),
+          address: newOrderForm.address.trim(),
+          city: newOrderForm.city.trim(),
+          pincode: newOrderForm.pincode.trim(),
+          items: allItems,
+          totalAmount,
+          notes: newOrderForm.notes.trim(),
+          createdAt: orderDateTime.toISOString(),
+          status: newOrderForm.status,
+          paymentStatus: newOrderForm.paymentStatus
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to create order')
+      
+      const newOrder = await response.json()
+      setOrders(prev => [newOrder, ...prev])
+      setCreateOrderModal(false)
+      alert(`Order #${newOrder.id} created successfully!`)
+    } catch (err) {
+      alert('Failed to create order: ' + err.message)
+      console.error(err)
+    } finally {
+      setCreatingOrder(false)
+    }
   }
 
   const fetchOrders = async () => {
@@ -706,6 +837,12 @@ function AdminPage() {
           <p>Manage Orders & Products</p>
         </div>
         <div className="header-actions">
+          <button 
+            className="btn btn-primary create-order-btn"
+            onClick={openCreateOrderModal}
+          >
+            ➕ New Order
+          </button>
           <button 
             className={`btn btn-secondary refresh-btn ${refreshing ? 'refreshing' : ''}`}
             onClick={handleRefresh}
@@ -1431,6 +1568,255 @@ function AdminPage() {
                 disabled={savingItems || (orderItems.filter(i => i.qty > 0).length === 0 && Object.keys(selectedItems).length === 0 && customItemsToAdd.length === 0)}
               >
                 {savingItems ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Order Modal */}
+      {createOrderModal && (
+        <div className="modal-overlay" onClick={() => setCreateOrderModal(false)}>
+          <div className="modal create-order-modal" onClick={e => e.stopPropagation()}>
+            <h2>➕ Create New Order</h2>
+            
+            {/* Customer Details */}
+            <div className="form-section">
+              <h4>👤 Customer Details</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Customer Name *</label>
+                  <input
+                    type="text"
+                    value={newOrderForm.customerName}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, customerName: e.target.value }))}
+                    placeholder="Enter name"
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Phone *</label>
+                  <input
+                    type="tel"
+                    value={newOrderForm.phone}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                    placeholder="10-digit mobile"
+                    className="form-input"
+                    maxLength={10}
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Address *</label>
+                <input
+                  type="text"
+                  value={newOrderForm.address}
+                  onChange={e => setNewOrderForm(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="Full address"
+                  className="form-input"
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>City</label>
+                  <input
+                    type="text"
+                    value={newOrderForm.city}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="City"
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Pincode</label>
+                  <input
+                    type="text"
+                    value={newOrderForm.pincode}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                    placeholder="Pincode"
+                    className="form-input"
+                    maxLength={6}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Order Date & Time (Backdate support) */}
+            <div className="form-section backdate-section">
+              <h4>📅 Order Date & Time</h4>
+              <p className="section-hint">Change date/time to create backdated orders</p>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Order Date</label>
+                  <input
+                    type="date"
+                    value={newOrderForm.orderDate}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, orderDate: e.target.value }))}
+                    className="form-input"
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Order Time</label>
+                  <input
+                    type="time"
+                    value={newOrderForm.orderTime}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, orderTime: e.target.value }))}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+              {newOrderForm.orderDate !== new Date().toISOString().split('T')[0] && (
+                <p className="backdate-warning">⚠️ Creating backdated order for {new Date(newOrderForm.orderDate).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+              )}
+            </div>
+
+            {/* Items Selection */}
+            <div className="form-section">
+              <h4>🏷️ Select Products</h4>
+              <div className="menu-items-grid compact">
+                {products.filter(p => p.available !== false).map(product => (
+                  <div key={product.id} className="menu-item-select">
+                    <span className="item-name">{product.name}</span>
+                    <span className="item-price">₹{product.price}</span>
+                    <div className="qty-selector">
+                      <button 
+                        className="qty-btn"
+                        onClick={() => handleNewOrderItemSelect(product, (newOrderItems[product.id]?.qty || 0) - 1)}
+                      >
+                        −
+                      </button>
+                      <span className="qty-value">{newOrderItems[product.id]?.qty || 0}</span>
+                      <button 
+                        className="qty-btn"
+                        onClick={() => handleNewOrderItemSelect(product, (newOrderItems[product.id]?.qty || 0) + 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Items */}
+            <div className="form-section add-custom-section">
+              <h4>✨ Add Custom Item</h4>
+              <div className="custom-item-form">
+                <input
+                  type="text"
+                  placeholder="Item name"
+                  value={newOrderCustomItem.name}
+                  onChange={e => setNewOrderCustomItem(prev => ({ ...prev, name: e.target.value }))}
+                  className="form-input"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Qty"
+                  value={newOrderCustomItem.qty}
+                  onChange={e => setNewOrderCustomItem(prev => ({ ...prev, qty: parseInt(e.target.value.replace(/\D/g, '')) || 1 }))}
+                  className="form-input qty-input"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Price ₹"
+                  value={newOrderCustomItem.price}
+                  onChange={e => setNewOrderCustomItem(prev => ({ ...prev, price: e.target.value.replace(/\D/g, '') }))}
+                  className="form-input price-input"
+                />
+                <button className="btn btn-secondary" onClick={addNewOrderCustomItem}>Add</button>
+              </div>
+              {newOrderCustomItems.length > 0 && (
+                <div className="custom-items-list">
+                  {newOrderCustomItems.map(item => (
+                    <div key={item.id} className="custom-item-tag">
+                      <span>✨ {item.name} × {item.qty} {item.price ? `(₹${item.price})` : '(TBD)'}</span>
+                      <button className="remove-btn" onClick={() => removeNewOrderCustomItem(item.id)}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            <div className="form-section">
+              <h4>📝 Notes</h4>
+              <div className="form-group">
+                <textarea
+                  value={newOrderForm.notes}
+                  onChange={e => setNewOrderForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Any special instructions..."
+                  className="form-textarea"
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="form-section">
+              <h4>📊 Order Status</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Status</label>
+                  <select
+                    value={newOrderForm.status}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, status: e.target.value }))}
+                    className="form-select"
+                  >
+                    {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Payment</label>
+                  <select
+                    value={newOrderForm.paymentStatus}
+                    onChange={e => setNewOrderForm(prev => ({ ...prev, paymentStatus: e.target.value }))}
+                    className="form-select"
+                  >
+                    {PAYMENT_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="order-summary-section">
+              <h4>💰 Order Summary</h4>
+              <div className="summary-items">
+                {Object.values(newOrderItems).filter(i => i.qty > 0).map(item => (
+                  <div key={item.id} className="summary-row">
+                    <span>{item.name} × {item.qty}</span>
+                    <span>₹{item.price * item.qty}</span>
+                  </div>
+                ))}
+                {newOrderCustomItems.map(item => (
+                  <div key={item.id} className="summary-row custom">
+                    <span>✨ {item.name} × {item.qty}</span>
+                    <span>{item.price ? `₹${item.price * item.qty}` : 'TBD'}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="summary-total-row">
+                <strong>Total</strong>
+                <strong>₹{getNewOrderTotal()}</strong>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setCreateOrderModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleCreateOrder}
+                disabled={creatingOrder || (!Object.keys(newOrderItems).length && !newOrderCustomItems.length)}
+              >
+                {creatingOrder ? 'Creating...' : 'Create Order'}
               </button>
             </div>
           </div>
