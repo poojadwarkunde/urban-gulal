@@ -24,7 +24,7 @@ function AdminPage() {
   // Filter & Sort state
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [paymentFilter, setPaymentFilter] = useState('ALL')
-  const [sortBy, setSortBy] = useState('newest')
+  const [sortBy, setSortBy] = useState('oldest')
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState('')
   const [hideCompleted, setHideCompleted] = useState(true) // Hide completed orders by default
@@ -1094,7 +1094,7 @@ function AdminPage() {
         <section className="status-sections">
           {/* New Orders */}
           {(() => {
-            const newOrders = orders.filter(o => o.status === 'NEW').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            const newOrders = orders.filter(o => o.status === 'NEW').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
             return newOrders.length > 0 && (
               <div className="status-section status-new">
                 <div className="section-header" onClick={() => toggleSection('new')}>
@@ -1114,7 +1114,7 @@ function AdminPage() {
 
           {/* In Progress (Confirmed + Shipped) */}
           {(() => {
-            const inProgressOrders = orders.filter(o => o.status === 'CONFIRMED' || o.status === 'SHIPPED').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            const inProgressOrders = orders.filter(o => o.status === 'CONFIRMED' || o.status === 'SHIPPED').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
             return inProgressOrders.length > 0 && (
               <div className="status-section status-confirmed">
                 <div className="section-header" onClick={() => toggleSection('inProgress')}>
@@ -1134,7 +1134,7 @@ function AdminPage() {
 
           {/* Delivered (Pending Payment) */}
           {(() => {
-            const deliveredPending = orders.filter(o => o.status === 'DELIVERED' && o.paymentStatus !== 'PAID').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            const deliveredPending = orders.filter(o => o.status === 'DELIVERED' && o.paymentStatus !== 'PAID').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
             return deliveredPending.length > 0 && (
               <div className="status-section status-delivered">
                 <div className="section-header" onClick={() => toggleSection('delivered')}>
