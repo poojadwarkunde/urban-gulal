@@ -516,7 +516,35 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
         ))}
       </nav>
 
-      <main className="products-grid">
+      <div className="main-content-layout">
+        {/* Reviews Sidebar - Top Right */}
+        <aside className="reviews-sidebar">
+          <h3>⭐ Customer Reviews</h3>
+          {feedbackScreenshots.length > 0 ? (
+            <div className="reviews-sidebar-gallery">
+              {feedbackScreenshots.map(screenshot => (
+                <div 
+                  key={screenshot._id} 
+                  className="review-sidebar-card"
+                  onClick={() => setZoomFeedback(screenshot)}
+                >
+                  <img 
+                    src={screenshot.imageUrl} 
+                    alt={screenshot.caption || 'Customer feedback'}
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                  {screenshot.customerName && (
+                    <span className="review-sidebar-name">— {screenshot.customerName}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="no-reviews-sidebar">🌟 Reviews coming soon!</p>
+          )}
+        </aside>
+
+        <main className="products-grid">
         {filteredProducts.map(product => (
           <div key={product.id} className={`product-card ${product.inStock === false ? 'out-of-stock' : ''}`}>
             <div 
@@ -573,46 +601,8 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
             </div>
           </div>
         ))}
-      </main>
-
-      {/* Customer Reviews Section */}
-      <section className="reviews-section">
-        <h2>⭐ Customer Reviews</h2>
-        {feedbackScreenshots.length > 0 ? (
-          <div className="reviews-gallery">
-            {feedbackScreenshots.map(screenshot => (
-              <div 
-                key={screenshot._id} 
-                className="review-card"
-                onClick={() => setZoomFeedback(screenshot)}
-              >
-                <div className="review-image-container">
-                  <img 
-                    src={screenshot.imageUrl} 
-                    alt={screenshot.caption || 'Customer feedback'}
-                    onError={(e) => {
-                      e.target.style.display = 'none'
-                    }}
-                  />
-                  <span className="zoom-hint">Tap to view</span>
-                </div>
-                <div className="review-info">
-                  {screenshot.customerName && (
-                    <div className="review-customer">— {screenshot.customerName}</div>
-                  )}
-                  {screenshot.caption && (
-                    <div className="review-caption">"{screenshot.caption}"</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="no-reviews">
-            <p>🌟 Be the first to share your experience!</p>
-          </div>
-        )}
-      </section>
+        </main>
+      </div>
 
       {/* Feedback Zoom Modal */}
       {zoomFeedback && (
