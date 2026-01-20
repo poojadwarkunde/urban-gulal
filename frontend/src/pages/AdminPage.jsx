@@ -751,13 +751,61 @@ function AdminPage() {
     return filtered
   }
 
+  const ADMIN_WHATSAPP = '917722039146'
+  
   const today = new Date().toISOString().split('T')[0]
   const todayOrders = orders.filter(o => o.createdAt.startsWith(today) && o.status !== 'CANCELLED')
   const todayRevenue = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0)
   const paidAmount = todayOrders.filter(o => o.paymentStatus === 'PAID').reduce((sum, o) => sum + o.totalAmount, 0)
   
+  // Items totals for today
+  const itemTotals = todayOrders.reduce((acc, order) => {
+    order.items.forEach(item => {
+      acc[item.name] = (acc[item.name] || 0) + item.qty
+    })
+    return acc
+  }, {})
+  
   // Active orders count (excluding cancelled)
   const activeOrdersCount = orders.filter(o => o.status !== 'CANCELLED').length
+
+  // Send Daily Sales Summary via WhatsApp
+  const sendDailySummary = () => {
+    const dateStr = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    
+    const itemsList = Object.entries(itemTotals)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, qty]) => `• ${name}: ${qty}`)
+      .join('\n')
+    
+    const pendingPayment = todayOrders
+      .filter(o => o.paymentStatus !== 'PAID')
+      .reduce((sum, o) => sum + o.totalAmount, 0)
+    
+    const deliveredCount = todayOrders.filter(o => o.status === 'DELIVERED').length
+    const pendingCount = todayOrders.filter(o => o.status !== 'DELIVERED' && o.status !== 'CANCELLED').length
+    
+    const message = `📊 *DAILY SALES SUMMARY - Urban Gulal*
+📅 ${dateStr}
+
+📦 *Orders Overview:*
+• Total Orders: ${todayOrders.length}
+• Delivered: ${deliveredCount}
+• Pending: ${pendingCount}
+
+💰 *Revenue:*
+• Total Sales: ₹${todayRevenue}
+• Collected: ₹${paidAmount}
+• Pending Payment: ₹${pendingPayment}
+
+🛍️ *Items Sold:*
+${itemsList || 'No items sold today'}
+
+⏰ Generated at ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+
+    const encodedMessage = encodeURIComponent(message)
+    window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodedMessage}`, '_blank')
+  }
 
   const formatDateTime = (isoString) => {
     const date = new Date(isoString)
@@ -974,6 +1022,9 @@ function AdminPage() {
             <div className="summary-header">
               <h2>📊 Today's Summary</h2>
               <div className="export-buttons">
+                <button onClick={sendDailySummary} className="btn btn-whatsapp-summary">
+                  📱 Send Summary
+                </button>
                 <a href="/api/export/daily" className="btn btn-export" download>
                   📥 Daily Report
                 </a>

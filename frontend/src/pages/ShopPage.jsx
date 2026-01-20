@@ -13,6 +13,7 @@ const EMOJI_MAP = {
 function ShopPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
   const [cart, setCart] = useState({})
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [showCart, setShowCart] = useState(false)
@@ -275,9 +276,13 @@ function ShopPage() {
     })
   }
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory)
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory
+    const matchesSearch = !searchQuery || 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    return matchesCategory && matchesSearch
+  })
 
   const cartItems = products.filter(p => cart[p.id] > 0).map(p => ({
     ...p,
@@ -308,6 +313,36 @@ function ShopPage() {
   const updateCustomItemQty = (id, qty) => {
     if (qty < 1) return removeCustomItem(id)
     setCustomItems(prev => prev.map(item => item.id === id ? { ...item, qty } : item))
+  }
+
+  // Reorder - add items from previous order to cart
+  const handleReorder = (order) => {
+    const newCart = { ...cart }
+    const newCustomItems = [...customItems]
+    
+    order.items.forEach(item => {
+      if (item.isCustom) {
+        // Add custom item
+        newCustomItems.push({
+          id: `custom-${Date.now()}-${Math.random()}`,
+          name: item.name,
+          qty: item.qty,
+          price: item.price || 0,
+          isCustom: true
+        })
+      } else {
+        // Find matching product and add to cart
+        const product = products.find(p => p.name === item.name)
+        if (product) {
+          newCart[product.id] = (newCart[product.id] || 0) + item.qty
+        }
+      }
+    })
+    
+    setCart(newCart)
+    setCustomItems(newCustomItems)
+    setShowOrderHistory(false)
+    alert('Items added to cart! 🛒')
   }
 
   // Format phone for WhatsApp - accepts 10 digit Indian numbers
@@ -520,17 +555,32 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
         </div>
       </header>
 
-      <nav className="categories">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat}
-            className={`cat-btn ${selectedCategory === cat ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(cat)}
-          >
-            {cat}
-          </button>
-        ))}
-      </nav>
+      <div className="search-categories-bar">
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button className="clear-search" onClick={() => setSearchQuery('')}>×</button>
+          )}
+        </div>
+        <nav className="categories">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              className={`cat-btn ${selectedCategory === cat ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </nav>
+      </div>
 
       <div className="main-content-layout">
         {/* Reviews Sidebar - Top Right */}
@@ -561,7 +611,11 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
         </aside>
 
         <main className="products-grid">
-        {filteredProducts.map(product => (
+        {filteredProducts.length === 0 ? (
+          <div className="no-products">
+            {searchQuery ? `No products found for "${searchQuery}"` : 'No products available in this category'}
+          </div>
+        ) : filteredProducts.map(product => (
           <div key={product.id} className={`product-card ${product.inStock === false ? 'out-of-stock' : ''}`}>
             <div 
               className="product-image zoomable"
@@ -617,7 +671,7 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
             </div>
           </div>
         ))}
-        </main>
+        </main>)
       </div>
 
       {/* Feedback Zoom Modal */}
@@ -993,6 +1047,15 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
                         <div className="history-cancel-reason">
                           Reason: {order.cancelReason}
                         </div>
+                      )}
+                      
+                      {order.status !== 'CANCELLED' && (
+                        <button 
+                          className="btn btn-reorder"
+                          onClick={() => handleReorder(order)}
+                        >
+                          🔄 Reorder
+                        </button>
                       )}
                     </div>
                   )
