@@ -563,7 +563,7 @@ function AdminPage() {
       case 'SHIPPED':
         return `📦 *Urban Gulal - Order Shipped!*\n\n🛍️ *Items:*\n• ${itemsList}\n\n🚚 Your order is on the way!\n\nYou'll receive it soon. Thank you for shopping with us! 🙏`
       case 'DELIVERED':
-        return `✅ *Urban Gulal - Order Delivered!*\n\n🎉 Your order has been delivered!\n\n💰 *Total Amount: ₹${order.totalAmount}*\n\n📱 *Payment via PhonePe UPI:*\n9096648553-3@ibl\n\nPlease share screenshot once payment is done. 🙏\n\nWe hope you love your items. Thank you for choosing Urban Gulal! 🎨`
+        return `✅ *Urban Gulal - Order Delivered!*\n\n🎉 Your order has been delivered!\n\n💰 *Total Amount: ₹${order.totalAmount}*\n\n📱 *Payment via PhonePe UPI:*\n9096648553-3@ibl\n\nPlease share screenshot once payment is done. 🙏\n\n⭐ *We'd love your feedback!*\nIf you loved your purchase, please post a review on Friday on PULA!\n\nYour support means a lot to us! 🎨❤️`
       case 'CANCELLED':
         return `❌ *Urban Gulal - Order Cancelled*\n\n⚠️ Reason: ${order.cancelReason || 'N/A'}\n\nIf you have questions, please contact us.`
       default:
