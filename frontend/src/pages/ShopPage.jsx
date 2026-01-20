@@ -47,6 +47,9 @@ function ShopPage() {
   const [customItems, setCustomItems] = useState([])
   const [newCustomItem, setNewCustomItem] = useState({ name: '', qty: 1, price: '' })
   
+  // Ratings state
+  const [productRatings, setProductRatings] = useState({})
+  
   // Load user from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('urbanGulalUser')
@@ -57,6 +60,36 @@ function ShopPage() {
       setPhone(userData.mobile)
     }
   }, [])
+
+  // Fetch product ratings
+  const fetchRatings = async () => {
+    try {
+      const response = await fetch('/api/ratings/all')
+      if (response.ok) {
+        const data = await response.json()
+        setProductRatings(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch ratings:', err)
+    }
+  }
+  
+  // Star display helper
+  const renderStars = (rating, count) => {
+    if (!rating || count === 0) return null
+    const fullStars = Math.floor(rating)
+    const hasHalf = rating % 1 >= 0.5
+    return (
+      <div className="product-rating">
+        <span className="stars">
+          {'★'.repeat(fullStars)}
+          {hasHalf && '½'}
+          {'☆'.repeat(5 - fullStars - (hasHalf ? 1 : 0))}
+        </span>
+        <span className="rating-count">({count})</span>
+      </div>
+    )
+  }
 
   // Fetch products from API
   useEffect(() => {
@@ -78,6 +111,7 @@ function ShopPage() {
       }
     }
     fetchProducts()
+    fetchRatings()
   }, [])
 
   // Authentication handlers
@@ -489,6 +523,7 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
             <div className="product-info">
               <span className="product-category">{product.category}</span>
               <h3>{product.name}</h3>
+              {productRatings[product.id] && renderStars(productRatings[product.id].avgRating, productRatings[product.id].count)}
               <div className="product-footer">
                 <span className="product-price">₹{product.price}</span>
                 {product.inStock === false ? (
