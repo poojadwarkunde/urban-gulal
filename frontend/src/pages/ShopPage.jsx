@@ -368,8 +368,24 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
   }
 
   const handlePlaceOrder = async () => {
-    if (!customerName.trim() || !phone.trim() || !address.trim()) {
-      alert('Please fill in all required fields')
+    if (!customerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    if (!phone.trim() || phone.length !== 10) {
+      alert('Please enter a valid 10-digit phone number')
+      return
+    }
+    if (!address.trim()) {
+      alert('Please enter your delivery address')
+      return
+    }
+    if (!city.trim()) {
+      alert('Please enter your city')
+      return
+    }
+    if (!pincode.trim() || pincode.length !== 6) {
+      alert('Please enter a valid 6-digit pincode')
       return
     }
     
@@ -814,10 +830,11 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
               />
               <input
                 type="tel"
-                placeholder="Phone Number *"
+                placeholder="Phone Number (10 digits) *"
                 value={phone}
-                onChange={e => setPhone(e.target.value)}
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 className="input"
+                maxLength={10}
               />
               <textarea
                 placeholder="Delivery Address *"
@@ -829,17 +846,18 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
               <div className="form-row">
                 <input
                   type="text"
-                  placeholder="City"
+                  placeholder="City *"
                   value={city}
                   onChange={e => setCity(e.target.value)}
                   className="input"
                 />
                 <input
                   type="text"
-                  placeholder="Pincode"
+                  placeholder="Pincode (6 digits) *"
                   value={pincode}
-                  onChange={e => setPincode(e.target.value)}
+                  onChange={e => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   className="input"
+                  maxLength={6}
                 />
               </div>
               <textarea
