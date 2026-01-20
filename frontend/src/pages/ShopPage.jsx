@@ -74,11 +74,11 @@ function ShopPage() {
     }
   }
   
-  // Star display helper
+  // Star display helper - defaults to 5 stars if no ratings
   const renderStars = (rating, count) => {
-    if (!rating || count === 0) return null
-    const fullStars = Math.floor(rating)
-    const hasHalf = rating % 1 >= 0.5
+    const displayRating = rating && count > 0 ? rating : 5
+    const fullStars = Math.floor(displayRating)
+    const hasHalf = displayRating % 1 >= 0.5
     return (
       <div className="product-rating">
         <span className="stars">
@@ -86,7 +86,7 @@ function ShopPage() {
           {hasHalf && '½'}
           {'☆'.repeat(5 - fullStars - (hasHalf ? 1 : 0))}
         </span>
-        <span className="rating-count">({count})</span>
+        {count > 0 && <span className="rating-count">({count})</span>}
       </div>
     )
   }
@@ -523,7 +523,7 @@ ${order.notes ? `\n📝 Notes: ${order.notes}` : ''}
             <div className="product-info">
               <span className="product-category">{product.category}</span>
               <h3>{product.name}</h3>
-              {productRatings[product.id] && renderStars(productRatings[product.id].avgRating, productRatings[product.id].count)}
+              {renderStars(productRatings[product.id]?.avgRating, productRatings[product.id]?.count || 0)}
               <div className="product-footer">
                 <span className="product-price">₹{product.price}</span>
                 {product.inStock === false ? (
